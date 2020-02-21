@@ -12,14 +12,5 @@ public class MyApp extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        //上电
-        try {
-            DeviceControlSpd deviceControl = new DeviceControlSpd(DeviceControlSpd.PowerType.NEW_MAIN, 71, 55, 57);
-            deviceControl.PowerOnDevice();
-            Log.d("zzc","上电");
-            SystemClock.sleep(1000);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 }

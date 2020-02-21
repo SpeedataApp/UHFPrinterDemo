@@ -1,6 +1,7 @@
 package com.speedata.uhfprinterdemo;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -12,8 +13,11 @@ import android.media.SoundPool;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.serialport.DeviceControlSpd;
+import android.text.TextUtils;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -43,17 +47,17 @@ import androidx.appcompat.app.AppCompatActivity;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private List<String> usbList;
-    private BroadcastReceiver mReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            usbList = PosPrinterDev.GetUsbPathNames(MainActivity.this);
-            if (usbList != null) {
-                connect();
-            } else {
-                disconnect();
-            }
-        }
-    };
+    //    private BroadcastReceiver mReceiver = new BroadcastReceiver() {
+//        @Override
+//        public void onReceive(Context context, Intent intent) {
+//            usbList = PosPrinterDev.GetUsbPathNames(MainActivity.this);
+//            if (usbList != null) {
+//                connect();
+//            } else {
+//                disconnect();
+//            }
+//        }
+//    };
     public static IMyBinder binder;
     public static boolean isConnect = false;
     ServiceConnection conn = new ServiceConnection() {
@@ -77,6 +81,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ArrayAdapter adapter;
     private SoundPool soundPool;
     private int soundId;
+    private View dialogView3;
+    private ListView lv_usb;
+    private TextView tv_usb;
+    private ArrayAdapter<String> adapter3;
+    public String usbDev = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,6 +101,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void initView() {
         findViewById(R.id.btn_print).setOnClickListener(this);
         findViewById(R.id.btn_read).setOnClickListener(this);
+        findViewById(R.id.btn_content).setOnClickListener(this);
+        findViewById(R.id.btn_discontent).setOnClickListener(this);
+        findViewById(R.id.btn_usb).setOnClickListener(this);
         tvName = findViewById(R.id.tv_name);
         tvCategory = findViewById(R.id.tv_category);
         tvCount1 = findViewById(R.id.tv_count1);
@@ -100,10 +112,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void initReceiver() {
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
-        filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
-        registerReceiver(mReceiver, filter);
+//        IntentFilter filter = new IntentFilter();
+//        filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
+//        filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
+//        registerReceiver(mReceiver, filter);
     }
 
     private void initData() {
@@ -144,19 +156,69 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         soundId = soundPool.load("/system/media/audio/ui/VideoRecord.ogg", 0);
     }
 
+    protected void setUsb() {
+        // TODO Auto-generated method stub
+        LayoutInflater inflater = LayoutInflater.from(this);
+        dialogView3 = inflater.inflate(R.layout.usb_link, null);
+        tv_usb = (TextView) dialogView3.findViewById(R.id.textView1);
+        lv_usb = (ListView) dialogView3.findViewById(R.id.listView1);
+
+
+        usbList = PosPrinterDev.GetUsbPathNames(this);
+        if (usbList == null) {
+            usbList = new ArrayList<String>();
+        }
+        tv_usb.setText("检测到的设备：" + usbList.size());
+        adapter3 = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, usbList);
+        lv_usb.setAdapter(adapter3);
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setView(dialogView3)
+                .create();
+        dialog.show();
+        set_lv_usb_listener(dialog);
+
+    }
+
+    private void set_lv_usb_listener(final AlertDialog dialog) {
+        // TODO Auto-generated method stub
+        lv_usb.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
+                                    long arg3) {
+                // TODO Auto-generated method stub
+                usbDev = usbList.get(arg2);
+                binder.connectUsbPort(getApplicationContext(), usbDev, new UiExecute() {
+
+                    @Override
+                    public void onsucess() {
+
+                    }
+
+                    @Override
+                    public void onfailed() {
+
+                    }
+                });
+                dialog.cancel();
+            }
+        });
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
         openDev();
-        usbList = PosPrinterDev.GetUsbPathNames(this);
-        if (usbList != null) {
-            connect();
-        }
+//        usbList = PosPrinterDev.GetUsbPathNames(this);
+//        if (usbList != null) {
+//            connect();
+//        }
     }
 
     @Override
     protected void onPause() {
-        disconnect();
+//        disconnect();
         if (iuhfService != null) {
             iuhfService.closeDev();
         }
@@ -165,7 +227,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void connect() {
         if (binder != null) {
-            binder.connectUsbPort(this, usbList.get(0), new UiExecute() {
+            binder.connectUsbPort(getApplicationContext(), usbDev, new UiExecute() {
                 @Override
                 public void onsucess() {
                     isConnect = true;
@@ -182,7 +244,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void disconnect() {
-        if (binder != null) {
+        if (binder != null && isConnect) {
             binder.disconnectCurrentPort(new UiExecute() {
                 @Override
                 public void onsucess() {
@@ -206,6 +268,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.btn_read:
                 startUhf();
+                break;
+            case R.id.btn_content:
+                if (!TextUtils.isEmpty(usbDev)) {
+                    connect();
+                } else {
+                    Toast.makeText(MainActivity.this, "没有检测到设备", Toast.LENGTH_SHORT).show();
+                }
+                break;
+            case R.id.btn_discontent:
+                disconnect();
+                break;
+            case R.id.btn_usb:
+                setUsb();
                 break;
             default:
                 break;
@@ -298,7 +373,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     protected void onDestroy() {
-        unregisterReceiver(mReceiver);
+//        unregisterReceiver(mReceiver);
         soundPool.release();
         //下电
         try {
