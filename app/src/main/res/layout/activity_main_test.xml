@@ -1,9 +1,11 @@
-<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="14dp">
+    android:padding="14dp"
+    tools:context=".MainActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -141,10 +143,10 @@
             </LinearLayout>
 
             <Button
-                android:id="@+id/btn_read"
+                android:id="@+id/btn_post"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="读取" />
+                android:text="@string/read_uhf" />
 
         </LinearLayout>
 
@@ -153,38 +155,64 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
         android:paddingTop="20dp">
 
         <Button
-            android:id="@+id/btn_usb"
-            android:layout_width="match_parent"
+            android:id="@+id/button7"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="检测设备" />
+            android:layout_weight="1"
+            android:text="@string/sb"
+            android:visibility="visible" />
+
+        <EditText
+            android:id="@+id/editText1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:hint="@string/hint"
+            android:text="192.168.1.138">
+
+            <requestFocus />
+        </EditText>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
 
         <Button
-            android:id="@+id/btn_content"
-            android:layout_width="match_parent"
+            android:id="@+id/button0"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="连接" />
+            android:layout_weight="1"
+            android:text="@string/connect" />
 
         <Button
-            android:id="@+id/btn_discontent"
-            android:layout_width="match_parent"
+            android:id="@+id/button1"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="断开连接" />
+            android:layout_weight="1"
+            android:text="@string/discon" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
 
         <Button
-            android:id="@+id/btn_print"
-            android:layout_width="match_parent"
+            android:id="@+id/button3"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="打印" />
+            android:layout_weight="1"
+            android:text="@string/text" />
 
         <Button
-            android:id="@+id/btn_print_test"
-            android:layout_width="match_parent"
+            android:id="@+id/btn_list"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="疲劳测试" />
+            android:layout_weight="1"
+            android:text="@string/list_ex" />
     </LinearLayout>
 
 </LinearLayout>
