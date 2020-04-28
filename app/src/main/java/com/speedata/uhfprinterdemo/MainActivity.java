@@ -66,7 +66,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     };
     private TextView tvName, tvCategory, tvCount1, tvCount2;
-    private Button readBtn;
+    private Button readBtn, printLoopTest;
     private ListView listView;
     private IUHFService iuhfService;
     private List<String> listBean = new ArrayList<>();
@@ -98,7 +98,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         findViewById(R.id.btn_content).setOnClickListener(this);
         findViewById(R.id.btn_discontent).setOnClickListener(this);
         findViewById(R.id.btn_usb).setOnClickListener(this);
-        findViewById(R.id.btn_print_test).setOnClickListener(this);
+        printLoopTest = findViewById(R.id.btn_print_test);
+        printLoopTest.setOnClickListener(this);
         tvName = findViewById(R.id.tv_name);
         tvCategory = findViewById(R.id.tv_category);
         tvCount1 = findViewById(R.id.tv_count1);
@@ -123,18 +124,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 @SuppressLint("SetTextI18n")
                 @Override
                 public void getInventoryData(SpdInventoryData var1) {
-                    if (!listBean.contains(var1.getEpc())) {
-                        soundPool.play(soundId, 1, 1, 0, 0, 1);
-                        listBean.add(var1.getEpc());
-                    }
-                    adapter.notifyDataSetChanged();
-                    tvCount1.setText(listBean.size() + "件");
-                    tvCount2.setText(listBean.size() + "");
+//                    if (!listBean.contains(var1.getEpc())) {
+//                        soundPool.play(soundId, 1, 1, 0, 0, 1);
+//                        listBean.add(var1.getEpc());
+//                    }
+                    listBean.add(var1.getEpc());
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            soundPool.play(soundId, 1, 1, 0, 0, 1);
+                            adapter.notifyDataSetChanged();
+                            tvCount1.setText(listBean.size() + "件");
+                            tvCount2.setText(listBean.size() + "");
+                        }
+                    });
                 }
 
                 @Override
                 public void onInventoryStatus(int status) {
-
+                    startUhf();
+                    Toast.makeText(MainActivity.this, "status:" + status, Toast.LENGTH_SHORT).show();
                 }
             });
         }
@@ -271,12 +280,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 setUsb();
                 break;
             case R.id.btn_print_test:
-                if (!isLoop){
+                if (!isLoop) {
+                    printLoopTest.setText("停止");
                     isLoop = true;
-                    PrintTestThread printTestThread = new PrintTestThread();
-                    printTestThread.start();
-                }else {
+//                    PrintTestThread printTestThread = new PrintTestThread();
+//                    printTestThread.start();
+                    TestThread testThread = new TestThread();
+                    testThread.start();
+                } else {
+                    printLoopTest.setText("疲劳测试");
                     isLoop = false;
+                    stopUhf();
                 }
                 break;
             default:
@@ -287,14 +301,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void startUhf() {
         isScan = true;
         listBean.clear();
-        iuhfService.inventoryStart();
-        readBtn.setText("停止");
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                iuhfService.inventoryStart();
+                readBtn.setText("停止");
+            }
+        });
     }
 
     private void stopUhf() {
         isScan = false;
-        iuhfService.inventoryStop();
-        readBtn.setText("读取");
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                iuhfService.inventoryStop();
+                readBtn.setText("读取");
+            }
+        });
     }
 
     private void print() {
@@ -316,7 +340,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 @Override
                 public List<byte[]> processDataBeforeSend() {
                     DataForSendToPrinterTSC.setCharsetName("gbk");
-                    //初始化一个list
+//                    初始化一个list
                     ArrayList<byte[]> list = new ArrayList<byte[]>();
                     //通过工具类得到一个指令的byte[]数据,以文本为例
                     //首先得设置size标签尺寸,宽60mm,高30mm,也可以调用以dot或inch为单位的方法具体换算参考编程手册
@@ -350,6 +374,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     byte[] shuxian = DataForSendToPrinterTSC.bar(150, 190, 3, 100);
                     byte[] end = DataForSendToPrinterTSC.block(170, 360, 300, 60, "TSS24.BF2", 0, 1, 1, 0, 2,
                             "该技术由xxx公司提供");
+
+                    byte[] test1 = DataForSendToPrinterTSC.text(70, 260, "TSS24.BF2", 0, 1, 1,
+                            "猪类1   20公斤    50     10000");
                     list.add(data1);
                     list.add(data2);
                     list.add(data3);
@@ -404,8 +431,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             super.run();
             while (!isInterrupted() && isLoop) {
                 print();
-                SystemClock.sleep(2000);
+                SystemClock.sleep(3000);
             }
+        }
+    }
+
+    private class TestThread extends Thread {
+        @Override
+        public void run() {
+            startUhf();
+            while (!isInterrupted() && isLoop) {
+                SystemClock.sleep(1000 * 10);
+                if (isLoop) {
+                    print();
+                }
+            }
+            stopUhf();
         }
     }
 
@@ -424,6 +465,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onDestroy() {
 //        unregisterReceiver(mReceiver);
+        isLoop = false;
         soundPool.release();
         //下电
         try {

@@ -160,7 +160,8 @@
             android:id="@+id/btn_usb"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="检测设备" />
+            android:text="检测设备"
+            android:visibility="gone"/>
 
         <Button
             android:id="@+id/btn_content"
@@ -172,7 +173,8 @@
             android:id="@+id/btn_discontent"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="断开连接" />
+            android:text="断开连接"
+            android:visibility="gone"/>
 
         <Button
             android:id="@+id/btn_print"

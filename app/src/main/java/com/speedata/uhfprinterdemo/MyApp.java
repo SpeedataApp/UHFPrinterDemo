@@ -18,9 +18,6 @@ public class MyApp extends Application {
             DeviceControlSpd deviceControl = new DeviceControlSpd(DeviceControlSpd.PowerType.NEW_MAIN, 71, 55, 57);
             deviceControl.PowerOnDevice();
             Log.d("zzc", "上电");
-            SystemClock.sleep(1000);
-//            Intent intent = new Intent(this, MainActivity.class);
-//            startActivity(intent);
         } catch (IOException e) {
             e.printStackTrace();
         }
