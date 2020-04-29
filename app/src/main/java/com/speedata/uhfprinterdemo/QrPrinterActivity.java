@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.media.SoundPool;
 import android.os.Bundle;
 import android.os.Handler;
@@ -51,7 +52,7 @@ import androidx.appcompat.app.AppCompatActivity;
 public class QrPrinterActivity extends AppCompatActivity implements View.OnClickListener {
 
     private TextView tvName, tvCategory, tvCount1, tvCount2;
-    private Button readBtn, printLoopTest,btnConnect;
+    private Button readBtn, printLoopTest, btnConnect;
     private ListView listView;
     private IUHFService iuhfService;
     private List<String> listBean = new ArrayList<>();
@@ -154,7 +155,7 @@ public class QrPrinterActivity extends AppCompatActivity implements View.OnClick
                     break;
                 case USB_Port.ATTACHED:
                     showMessage("监测到设备！");
-                    if (!isOpen){
+                    if (!isOpen) {
                         usb_port.openUsb();
                     }
                     break;
@@ -201,7 +202,7 @@ public class QrPrinterActivity extends AppCompatActivity implements View.OnClick
                     btnConnect.setText("连接");
                     usb_port.closeUsb();
                     isOpen = false;
-                }else {
+                } else {
                     usb_port.openUsb();
                 }
                 break;
@@ -247,6 +248,20 @@ public class QrPrinterActivity extends AppCompatActivity implements View.OnClick
         });
     }
 
+    private Bitmap createBitmap() {
+        CanvasPrint cp = new CanvasPrint();
+        cp.init(480);
+        FontProperty fp = new FontProperty();
+        fp.setFont(false, false, false, false, 20, null);
+        cp.setFontProperty(fp);
+
+        cp.drawText("weewfe");
+        cp.drawText(100, 50, "0760-122312455");
+        cp.drawText(100, 150, "中山市沙朗肉联厂A15卡");
+        cp.drawText(0, 200, "\n");
+        return cp.getCanvasImage();
+    }
+
     private void print() {
         final String strName = tvName.getText().toString().trim();
         final String strCategory = tvCategory.getText().toString().trim();
@@ -286,7 +301,7 @@ public class QrPrinterActivity extends AppCompatActivity implements View.OnClick
         public void run() {
             startUhf();
             while (!isInterrupted() && isLoop) {
-                SystemClock.sleep(1000 * 10);
+                SystemClock.sleep(1000 * 60 * 5);
                 if (isLoop) {
                     print();
                 }

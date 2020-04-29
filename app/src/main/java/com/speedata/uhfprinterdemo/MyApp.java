@@ -21,5 +21,6 @@ public class MyApp extends Application {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        SystemClock.sleep(1000);
     }
 }
